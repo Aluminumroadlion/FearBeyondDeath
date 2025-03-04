@@ -1,0 +1,248 @@
+[manifest]
+version = "0.0.0~PRERELEASE"
+dump_lua = true
+priority = -9
+
+[[patches]]
+[patches.pattern]
+target = "functions/common_events.lua"
+pattern = '''
+                    {n=G.UIT.C, config={padding = 0.05, align = 'cm'}, nodes={
+                        {n=G.UIT.R, config={align = 'cm'}, nodes={
+                            {n=G.UIT.O, config={object = DynaText({string = {' '..localize('ph_mr_bones')..' '}, colours = {G.C.FILTER}, shadow = true, pop_in = 0, scale = 0.5*scale, silent = true})}}
+                        }}
+                    }}
+'''
+position = "at"
+payload = '''
+                    {n=G.UIT.C, config={padding = 0.05, align = 'cm'}, nodes={
+                        {n=G.UIT.R, config={align = 'cm'}, nodes={
+                            {n=G.UIT.O, config={object = DynaText({string = {(G.GAME.whosavedme or ' '..localize('ph_mr_bones')..' ')}, colours = {G.C.FILTER}, shadow = true, pop_in = 0, scale = 0.5*scale, silent = true})}}
+                        }}
+                    }}
+'''
+match_indent=true
+
+[[patches]]
+[patches.pattern]
+target = "functions/state_events.lua"
+pattern = '''
+if SMODS.saved then game_over = false end
+'''
+position = "at"
+payload = '''
+if SMODS.saved == "lose_the_game" then
+    game_over = true
+elseif SMODS.saved == "true" then
+    game_over = false
+end
+if G.GAME.purgatory_check and game_over then
+    FBD_Purgatory()
+end
+'''
+match_indent=true
+
+[[patches]]
+[patches.pattern]
+target = "card.lua"
+pattern = '''
+if self.ability.name == 'Mr. Bones' and context.game_over and 
+                G.GAME.chips/G.GAME.blind.chips >= 0.25 then
+                    G.E_MANAGER:add_event(Event({
+                        func = function()
+                            G.hand_text_area.blind_chips:juice_up()
+                            G.hand_text_area.game_chips:juice_up()
+                            play_sound('tarot1')
+                            self:start_dissolve()
+                            return true
+                        end
+                    })) 
+                    return {
+                        message = localize('k_saved_ex'),
+                        saved = true,
+                        colour = G.C.RED
+                    }
+                end
+'''
+position = "at"
+payload = '''
+if self.ability.name == 'Mr. Bones' and context.game_over and 
+                G.GAME.chips/G.GAME.blind.chips >= 0.25 then
+                    G.E_MANAGER:add_event(Event({
+                        func = function()
+                            G.hand_text_area.blind_chips:juice_up()
+                            G.hand_text_area.game_chips:juice_up()
+                            play_sound('tarot1')
+                            self:start_dissolve()
+                            return true
+                        end
+                    })) 
+                    return {
+                        message = localize('k_saved_ex'),
+                        saved = "true",
+                        colour = G.C.RED
+                    }
+                end
+'''
+match_indent=true
+
+[[patches]]
+[patches.pattern]
+target = "cardarea.lua"
+pattern = '''
+function CardArea:change_size(delta)
+'''
+position = "after"
+payload = '''
+for k, card in pairs(G.jokers.cards) do
+    if card and type(card) == 'table' and card.ability.name == "Propaganda" and (non_debuff or not card.debuff) then
+        delta = 0
+    end
+end
+'''
+match_indent=true
+
+[[patches]]
+[patches.pattern]
+target = "functions/UI_definitions.lua"
+pattern = '''
+          {n=G.UIT.R, config={id = 'from_game_over', align = "cm", minw = 5, padding = 0.1, r = 0.1, hover = true, colour = G.C.RED, button = "notify_then_setup_run", shadow = true, focus_args = {nav = 'wide', snap_to = true}}, nodes={
+            {n=G.UIT.R, config={align = "cm", padding = 0, no_fill = true, maxw = 4.8}, nodes={
+              {n=G.UIT.T, config={text = localize('b_start_new_run'), scale = 0.5, colour = G.C.UI.TEXT_LIGHT}}
+            }}
+          }},
+'''
+position = "at"
+payload = '''
+          {n=G.UIT.R, config={id = 'from_game_over', align = "cm", minw = 5, padding = 0.1, r = 0.1, hover = true, colour = G.C.RED, button = (G.GAME.purgatorytext and "enter_purgatory_run" or "notify_then_setup_run"), shadow = true, focus_args = {nav = 'wide', snap_to = true}}, nodes={
+            {n=G.UIT.R, config={align = "cm", padding = 0, no_fill = true, maxw = 4.8}, nodes={
+              {n=G.UIT.T, config={text = (G.GAME.purgatorytext or localize('b_start_new_run')), scale = 0.5, colour = G.C.UI.TEXT_LIGHT}}
+            }}
+          }},
+'''
+match_indent=true
+
+[[patches]]
+[patches.pattern]
+target = "functions/UI_definitions.lua"
+pattern = '''
+    {n=G.UIT.R, config={align = "cm", padding = 0.08}, nodes={
+      UIBox_button({button = 'exit_overlay_menu', label = {localize('b_endless')}, minw = 6.5, maxw = 5, minh = 1.2, scale = 0.7, shadow = true, colour = G.C.BLUE, focus_args = {nav = 'wide', button = 'x',set_button_pip = true}}),
+    }},
+'''
+position = "at"
+payload = '''
+    {n=G.UIT.R, config={align = "cm", padding = 0.08}, nodes={
+      UIBox_button({button = (G.GAME.OLDGAME and "return_from_hell" or 'exit_overlay_menu'), label = {(G.GAME.OLDGAME and "Return from Hell" or localize('b_endless'))}, minw = 6.5, maxw = 5, minh = 1.2, scale = 0.7, shadow = true, colour = G.C.BLUE, focus_args = {nav = 'wide', button = 'x',set_button_pip = true}}),
+    }},
+'''
+match_indent=true
+
+[[patches]]
+[patches.pattern]
+target = "game.lua"
+pattern = '''
+    self.GAME.stake = args.stake or self.GAME.stake or 1
+    self.GAME.STOP_USE = 0
+    self.GAME.selected_back = Back(selected_back)
+    self.GAME.selected_back_key = selected_back
+'''
+position = "after"
+payload = '''
+    self.GAME.OLDGAME = args.oldgame
+'''
+match_indent=true
+
+[[patches]]
+[patches.pattern]
+target = "game.lua"
+pattern = '''
+                        elseif v.id == 'no_reward_specific' then
+                            self.GAME.modifiers.no_blind_reward = self.GAME.modifiers.no_blind_reward or {}
+                            self.GAME.modifiers.no_blind_reward[v.value] = true
+'''
+position = "after"
+payload = '''
+                        elseif v.id == 'win_ante' then
+                            self.GAME.win_ante = v.value
+                        elseif v.id == 'stake' then
+                            self.GAME.stake = v.value
+                            if self.GAME.stake >= 2 then 
+                                self.GAME.modifiers.no_blind_reward = self.GAME.modifiers.no_blind_reward or {}
+                                self.GAME.modifiers.no_blind_reward.Small = true
+                            end
+                            if self.GAME.stake >= 3 then self.GAME.modifiers.scaling = 2 end
+                            if self.GAME.stake >= 4 then self.GAME.modifiers.enable_eternals_in_shop = true end
+                            if self.GAME.stake >= 5 then self.GAME.starting_params.discards = self.GAME.starting_params.discards - 1 end
+                            if self.GAME.stake >= 6 then self.GAME.modifiers.scaling = 3 end
+                            if self.GAME.stake >= 7 then self.GAME.modifiers.enable_perishables_in_shop = true end
+                            if self.GAME.stake >= 8 then self.GAME.modifiers.enable_rentals_in_shop = true end
+                        elseif v.id == 'all_boss_blinds' and v.value then
+                            self.GAME.modifiers.all_boss_blinds = true
+                            self.GAME.round_resets.blind_choices = {Small = get_new_boss(), Big = get_new_boss()}
+                        elseif v.id == 'starting_ante_zero' and v.value then
+                            G.GAME.round_resets.ante = 0
+                            G.GAME.round_resets.blind_ante = 0
+'''
+match_indent=true
+
+[[patches]]
+[patches.pattern]
+target = "functions/state_events.lua"
+pattern = '''
+                    if G.GAME.modifiers.set_joker_slots_ante and (G.GAME.round_resets.ante == G.GAME.modifiers.set_joker_slots_ante) then 
+                        G.jokers.config.card_limit = 0
+                    end
+'''
+position = "after"
+payload = '''
+                    if G.GAME.modifiers.all_boss_blinds then
+                        G.GAME.round_resets.blind_choices = {Small = get_new_boss(), Big = get_new_boss()}
+                    end
+'''
+match_indent=true
+
+
+[[patches]]
+[patches.pattern]
+target = "functions/state_events.lua"
+pattern = '''
+                        if G.GAME.round_resets.blind == G.P_BLINDS.bl_small then
+                            G.GAME.round_resets.blind_states.Small = 'Defeated'
+                        elseif G.GAME.round_resets.blind == G.P_BLINDS.bl_big then
+                            G.GAME.round_resets.blind_states.Big = 'Defeated'
+'''
+position = "at"
+payload = '''
+                        if G.GAME.round_resets.blind == G.P_BLINDS[G.GAME.round_resets.blind_choices.Small] then
+                            G.GAME.round_resets.blind_states.Small = 'Defeated'
+                        elseif G.GAME.round_resets.blind == G.P_BLINDS[G.GAME.round_resets.blind_choices.Big] then
+                            G.GAME.round_resets.blind_states.Big = 'Defeated'
+'''
+match_indent=true
+
+[[patches]]
+[patches.pattern]
+target = "functions/state_events.lua"
+pattern = '''
+            if G.GAME.round_resets.blind == G.P_BLINDS.bl_small then
+                G.GAME.round_resets.blind_states.Small = 'Current'
+                G.GAME.current_boss_streak = 0
+                blhash = 'S'
+            elseif G.GAME.round_resets.blind == G.P_BLINDS.bl_big then
+                G.GAME.round_resets.blind_states.Big = 'Current'
+                G.GAME.current_boss_streak = 0
+                blhash = 'B'
+'''
+position = "at"
+payload = '''
+            if G.GAME.round_resets.blind == G.P_BLINDS[G.GAME.round_resets.blind_choices.Small] then
+                G.GAME.round_resets.blind_states.Small = 'Current'
+                G.GAME.current_boss_streak = 0
+                blhash = 'S'
+            elseif G.GAME.round_resets.blind == G.P_BLINDS[G.GAME.round_resets.blind_choices.Big] then
+                G.GAME.round_resets.blind_states.Big = 'Current'
+                G.GAME.current_boss_streak = 0
+                blhash = 'B'
+'''
+match_indent=true
