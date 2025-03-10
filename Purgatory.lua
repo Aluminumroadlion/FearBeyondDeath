@@ -1,13 +1,17 @@
+
 -- Purgatory
   SMODS.Joker{
     key='purgatory',
     loc_txt = {
       name = 'The Gates of Limbo',
       text={
-        "When this card is purchased",
+        "When this card is purchased,",
         "enter {C:red}Hell{} the next time you die",
       },
     },
+    loc_vars = function(self, info_queue, card)
+      info_queue[#info_queue+1] = {key = "fear_beyond_death_hellinfo", set = "Other"}
+    end,
     atlas = 'Jokers',
     pos = {x=0,y=0},
     rarity = 3,
@@ -44,7 +48,7 @@
     },
     restrictions = {
       banned_cards = {
-        {id = "j_fear-beyond-death_purgatory"}
+        {id = "j_fear_beyond_death_purgatory"}
       },
     },
     consumeables = {
@@ -52,7 +56,7 @@
     },
     unlocked = function(self)
       for k, v in pairs(G.PROFILES[1].challenge_progress.completed) do
-        if k == 'c_fear-beyond-death_purgatorychallenge' and v then return true end
+        if k == 'c_fear_beyond_death_purgatorychallenge' and v then return true end
       end
       return false
     end,
@@ -105,9 +109,17 @@
 -- 
 
 -- Localization
-function SMODS.current_mod.process_loc_text()
+SMODS.current_mod.process_loc_text = function()
   G.localization.misc.v_text.ch_c_all_boss_blinds = {"All {C:attention}Blinds{} are {C:attention}Boss Blinds{}"}
   G.localization.misc.v_text.ch_c_stake = {"Play on Gold Stake"}
   -- G.localization.misc.v_text.ch_c_starting_ante_zero = {"Start on Ante {C:attention}0{}"}
   G.localization.misc.v_text.ch_c_win_ante = {"Win on Ante {C:attention}3{}"}
+  G.localization.descriptions.Other.fear_beyond_death_hellinfo = {
+    name = "Hell",
+    text = {
+      "Play a Balatro {C:attention}subgame{}",
+      "with the {C:red}Hell{} challenge",
+      "If you win, win the blind",
+    }
+  }
 end

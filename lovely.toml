@@ -1,5 +1,5 @@
 [manifest]
-version = "0.0.0~PRERELEASE"
+version = "0.1.0"
 dump_lua = true
 priority = -9
 
@@ -46,43 +46,19 @@ match_indent=true
 [patches.pattern]
 target = "card.lua"
 pattern = '''
-if self.ability.name == 'Mr. Bones' and context.game_over and 
-                G.GAME.chips/G.GAME.blind.chips >= 0.25 then
-                    G.E_MANAGER:add_event(Event({
-                        func = function()
-                            G.hand_text_area.blind_chips:juice_up()
-                            G.hand_text_area.game_chips:juice_up()
-                            play_sound('tarot1')
-                            self:start_dissolve()
-                            return true
-                        end
-                    })) 
                     return {
                         message = localize('k_saved_ex'),
                         saved = true,
                         colour = G.C.RED
                     }
-                end
 '''
 position = "at"
 payload = '''
-if self.ability.name == 'Mr. Bones' and context.game_over and 
-                G.GAME.chips/G.GAME.blind.chips >= 0.25 then
-                    G.E_MANAGER:add_event(Event({
-                        func = function()
-                            G.hand_text_area.blind_chips:juice_up()
-                            G.hand_text_area.game_chips:juice_up()
-                            play_sound('tarot1')
-                            self:start_dissolve()
-                            return true
-                        end
-                    })) 
                     return {
                         message = localize('k_saved_ex'),
                         saved = "true",
                         colour = G.C.RED
                     }
-                end
 '''
 match_indent=true
 
@@ -180,9 +156,6 @@ payload = '''
                         elseif v.id == 'all_boss_blinds' and v.value then
                             self.GAME.modifiers.all_boss_blinds = true
                             self.GAME.round_resets.blind_choices = {Small = get_new_boss(), Big = get_new_boss()}
-                        elseif v.id == 'starting_ante_zero' and v.value then
-                            G.GAME.round_resets.ante = 0
-                            G.GAME.round_resets.blind_ante = 0
 '''
 match_indent=true
 

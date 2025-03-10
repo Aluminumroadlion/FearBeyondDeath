@@ -171,8 +171,8 @@ SMODS.Joker{
   loc_txt = {
     name = 'Ancient Hourglass',
     text={
-      "{C:attention}-1 Ante{} when this card is purchased",
-      "{C:attention}+1 Ante{} when this card is sold",
+      "{C:attention}-1 Ante{}",
+      "{C:attention}+1 Ante{} when destroyed or sold",
     }
   },
   rarity = 3,
@@ -187,6 +187,55 @@ SMODS.Joker{
   end,
   remove_from_deck = function(self, card, from_debuff)
     if not from_debuff then ease_ante(1) end
+  end,
+}
+
+-- Henchman
+SMODS.Joker{
+  key = 'henchman',
+  loc_txt = {
+    name = 'Henchman',
+    text={
+      -- "{X:mult,C:white} X#1# {} Mult",
+      "When {C:attention}Boss Blind{} is defeated,",
+      "turn all {C:attention}Blinds{} into {C:attention}Boss Blinds{}",
+    }
+  },
+  rarity = 3,
+  cost = 8,
+  blueprint_compat = true,
+  eternal_compat = true,
+  -- config = {
+  --   extra = {
+  --     Xmult = 3,
+  --   }
+  -- },
+  -- loc_vars = function(self, info_queue, card)
+  --   return { vars = {
+  --     card.ability.extra.Xmult,
+  --   }}
+  -- end,
+  atlas = 'Jokers',
+  pos = {x=0, y=0},
+  calculate = function(self, card, context)
+    if context.end_of_round and not context.blueprint and G.GAME.blind.boss and not card.debuff and context.cardarea == G.jokers then
+      return {
+        message = "Boss!",
+        colour = G.C.RED
+      }
+    end
+    -- if context.cardarea == G.jokers and context.joker_main then
+    --   return {
+    --     message = localize{type='variable',key='a_xmult',vars={card.ability.extra.Xmult}},
+    --     Xmult_mod = card.ability.extra.Xmult,
+    --   }
+    -- end
+  end,
+  add_to_deck = function(self, card, from_debuff)
+    G.GAME.modifiers.all_boss_blinds = true
+  end,
+  remove_from_deck = function(self, card, from_debuff)
+    G.GAME.modifiers.all_boss_blinds = false
   end,
 }
 
