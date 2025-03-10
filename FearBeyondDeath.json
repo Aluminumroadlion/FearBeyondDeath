@@ -1,10 +1,10 @@
 {
-	"id": "fear-beyond-death",
+	"id": "fear_beyond_death",
 	"name": "Fear Beyond Death",
 	"display_name": "Fear Beyond Death",
 	"author": ["Aluminumroadlion"],
 	"description": "A mod that adds dark magic and death-themed jokers to Balatro.",
-	"prefix": "fear-beyond-death",
+	"prefix": "fear_beyond_death",
 	"main_file": "FearBeyondDeath.lua",
     "priority": -9,
     "version": "0.1.0",
