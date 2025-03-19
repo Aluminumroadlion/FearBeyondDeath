@@ -246,6 +246,7 @@ SMODS.Joker{
     G.GAME.modifiers.all_boss_blinds = true
   end,
   remove_from_deck = function(self, card, from_debuff)
+    G.GAME.round_resets.blind_choices = {Small = 'bl_small', Big = 'bl_big'}
     G.GAME.modifiers.all_boss_blinds = false
   end,
 }
