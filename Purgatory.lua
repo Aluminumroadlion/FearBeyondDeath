@@ -5,25 +5,39 @@
     loc_txt = {
       name = 'The Gates of Limbo',
       text={
-        "When this card is purchased,",
-        "enter {C:red}Hell{} the next time you die",
+        "Prevents Death",
+        "Enter {C:red}Hell{} when you die",
+        "If you win, win the blind",
+        "{S:1.1,C:red,E:2}self destructs{}",
       },
     },
     loc_vars = function(self, info_queue, card)
       info_queue[#info_queue+1] = {key = "fear_beyond_death_hellinfo", set = "Other"}
     end,
-    atlas = 'Jokers',
+    atlas = 'gates_of_limbo',
     pos = {x=0,y=0},
     rarity = 3,
     cost = 8,
     blueprint_compat = false,
     eternal_compat = false,
     config = {},
-    add_to_deck = function(self, card, from_debuff)
-      if not from_debuff then
-        G.GAME.purgatory_check = true
+    calculate = function(self, card, context)
+      if context.end_of_round and not context.blueprint and G.GAME.returned_from_hell == true then
+        G.GAME.returned_from_hell = false
+        G.E_MANAGER:add_event(Event({
+          func = function()
+              card:start_dissolve()
+              return true
+          end
+        }))
       end
-    end
+    end,
+    add_to_deck = function(self, card, from_debuff)
+      G.GAME.purgatory_check = true
+    end,
+    remove_from_deck = function(self, card, from_debuff)
+      G.GAME.purgatory_check = false
+    end,
   }
   
   -- hell deck
@@ -71,6 +85,7 @@
     G.GAME.OLDGAME = STR_UNPACK(get_compressed(G.SETTINGS.profile..'/'..'save.jkr'))
     G.GAME.OLDGAME.GAME.chips = G.GAME.blind.chips
     G.GAME.OLDGAME.GAME.purgatory_check = false
+    G.GAME.OLDGAME.GAME.returned_from_hell = true
   end
   
   -- what happens when you press the "enter purgatory" button
@@ -119,7 +134,6 @@ SMODS.current_mod.process_loc_text = function()
     text = {
       "Play a Balatro {C:attention}subgame{}",
       "with the {C:red}Hell{} challenge",
-      "If you win, win the blind",
     }
   }
 end

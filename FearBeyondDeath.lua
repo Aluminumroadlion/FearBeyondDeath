@@ -3,6 +3,12 @@
 SMODS.Atlas { key = 'Jokers', path = 'Jokers.png', px = 71, py = 95 }
 SMODS.Atlas { key = 'crystalball', path = 'crystalball.png', px = 71, py = 95 }
 SMODS.Atlas { key = 'ancienthourglass', path = 'ancienthourglass.png', px = 71, py = 95 }
+SMODS.Atlas { key = 'cultist_art', path = 'cultist_art.png', px = 71, py = 95 }
+SMODS.Atlas { key = 'drspecter_art', path = 'drspecter_art.png', px = 71, py = 95 }
+SMODS.Atlas { key = 'henchman_art', path = 'henchman_art.png', px = 71, py = 95 }
+SMODS.Atlas { key = 'propaganda_art', path = 'propaganda_art.png', px = 71, py = 95 }
+SMODS.Atlas { key = 'gates_of_limbo', path = 'gates_of_limbo.png', px = 71, py = 95 }
+SMODS.Atlas { key = 'the_coven_art', path = 'the_coven_art.png', px = 71, py = 95 }
 
 -- yoink the vanilla mr bones
 SMODS.Joker:take_ownership('j_mr_bones',{
@@ -59,7 +65,7 @@ SMODS.Joker{
     cost = 6,
     blueprint_compat = false,
     eternal_compat = true,
-    atlas = 'Jokers',
+    atlas = 'cultist_art',
     pos = {x=0, y=0},
     calculate = function(self, card, context)
       if context.cardarea == G.jokers and context.joker_main then
@@ -70,7 +76,12 @@ SMODS.Joker{
       elseif context.end_of_round and not context.blueprint and not context.repetition and not context.individual then
         card.ability.extra.rounds_passed = card.ability.extra.rounds_passed + 1
         if pseudorandom('Cultist') < ((G.GAME and G.GAME.probabilities.normal or 1)*2^(card.ability.extra.rounds_passed or 0))/card.ability.extra.odds then
-          return {saved = "lose_the_game"}
+          return {
+            message = "Death!",
+            saved = "lose_the_game"
+          }
+        else
+          return{message = "Safe!"}
         end
       end
     end,
@@ -101,7 +112,7 @@ SMODS.Joker{
   cost = 6,
   blueprint_compat = false,
   eternal_compat = true,
-  atlas = 'Jokers',
+  atlas = 'propaganda_art',
   pos = {x=0, y=0},
   -- when added, set current hand size to 3
   add_to_deck = function(self, card, from_debuff)
@@ -201,9 +212,9 @@ SMODS.Joker{
       "turn all {C:attention}Blinds{} into {C:attention}Boss Blinds{}",
     }
   },
-  rarity = 3,
-  cost = 8,
-  blueprint_compat = true,
+  rarity = 2,
+  cost = 7,
+  blueprint_compat = false,
   eternal_compat = true,
   -- config = {
   --   extra = {
@@ -215,7 +226,7 @@ SMODS.Joker{
   --     card.ability.extra.Xmult,
   --   }}
   -- end,
-  atlas = 'Jokers',
+  atlas = 'henchman_art',
   pos = {x=0, y=0},
   calculate = function(self, card, context)
     if context.end_of_round and not context.blueprint and G.GAME.blind.boss and not card.debuff and context.cardarea == G.jokers then
@@ -236,6 +247,103 @@ SMODS.Joker{
   end,
   remove_from_deck = function(self, card, from_debuff)
     G.GAME.modifiers.all_boss_blinds = false
+  end,
+}
+
+-- Dr Specter
+SMODS.Joker{
+  key = 'drspecter',
+  loc_txt = {
+    name = 'Dr. Specter',
+    text={
+      "Prevents Death",
+      "if chips scored",
+      "are at least {C:attention}10%",
+      "of required chips",
+      "Sets money to {C:money}$0{}",
+      "{S:1.1,C:red,E:2}self destructs{}",
+    }
+  },
+  rarity = 2,
+  cost = 5,
+  blueprint_compat = false,
+  eternal_compat = false,
+  atlas = 'drspecter_art',
+  pos = {x=0, y=0},
+  soul_pos = {x=0, y=1},
+  calculate = function(self, card, context)
+    if context.end_of_round and not context.blueprint and G.GAME.chips/G.GAME.blind.chips >= 0.1
+    and (context.game_over or SMODS.saved == "lose_the_game") then
+      G.E_MANAGER:add_event(Event({
+        func = function()
+            G.hand_text_area.blind_chips:juice_up()
+            G.hand_text_area.game_chips:juice_up()
+            play_sound('whoosh2')
+            card:start_dissolve()
+            return true
+        end
+      }))
+      G.GAME.whosavedme = 'Saved by Dr. Specter'
+      local dollars = G.GAME.dollars
+      if type(dollars) == "table" then
+        dollars = G.GAME.dollars.array[1]
+      end
+      if dollars ~= 0 then
+        ease_dollars(-dollars, true)
+      end
+      return {
+          message = localize('k_saved_ex'),
+          saved = "true",
+          colour = G.C.RED
+      }
+    end
+  end,
+}
+
+-- The Coven
+SMODS.Joker{
+  key = 'the_coven',
+  loc_txt = {
+    name = 'The Coven',
+    text={
+      "{X:mult,C:white}X#1#{} Mult per {C:spectral}Spectral{}",
+      "card used this run",
+      "{C:inactive}(Currently {X:mult,C:white}X#2#{}{C:inactive})",
+    }
+  },
+  config = {
+    extra = {
+      multmod = 0.5,
+      Xmult = 1,
+    }
+  },
+  loc_vars = function(self, info_queue, card)
+    return { vars = {
+      card.ability.extra.multmod,
+      card.ability.extra.Xmult,
+    }}
+  end,
+  rarity = 3,
+  cost = 8,
+  blueprint_compat = true,
+  eternal_compat = true,
+  atlas = 'the_coven_art',
+  pos = {x=0, y=0},
+  calculate = function(self, card, context)
+    if context.cardarea == G.jokers and context.joker_main and card.ability.extra.Xmult > 1 then
+      return {
+        message = localize{type='variable',key='a_xmult',vars={card.ability.extra.Xmult}},
+        Xmult_mod = card.ability.extra.Xmult,
+      }
+    end
+    if context.using_consumeable and not context.blueprint and context.consumeable.ability.set == "Spectral" then
+      if G.GAME.consumeable_usage_total and G.GAME.consumeable_usage_total.spectral then
+        card.ability.extra.Xmult = 1+0.5*G.GAME.consumeable_usage_total.spectral
+      end
+      return {
+        message = localize{type='variable',key='a_xmult',vars={card.ability.extra.Xmult}}
+      }
+    end
   end,
 }
 
